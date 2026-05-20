@@ -1,0 +1,192 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+abstract class Person {
+  +Id: Guid
+  +FullName: string
+  +GetDisplayName(): string
+  +ToString(): string
+}
+
+class Customer {
+  +Phone: PhoneNumber
+  +GetDisplayName(): string
+}
+
+class Mechanic {
+  +Specialization: MechanicSpecialization
+  +GetDisplayName(): string
+}
+
+class Vehicle {
+  +Id: Guid
+  +Vin: Vin
+  +Brand: string
+  +Model: string
+  +Owner: Customer
+}
+
+class Appointment {
+  +Id: Guid
+  +Vehicle: Vehicle
+  +ScheduledAt: DateTime
+  +ProblemDescription: string
+  +Status: AppointmentStatus
+  +Confirm(): void
+  +Cancel(): void
+}
+
+class Job {
+  +Id: Guid
+  +Appointment: Appointment
+  +Mechanic: Mechanic?
+  +Status: JobStatus
+  +StartedAt: DateTime?
+  +CompletedAt: DateTime?
+  +LaborCost: Money?
+  +PartsCost: Money?
+  +AssignMechanic(mechanic): void
+  +Start(): void
+  +Complete(laborCost, partsCost): void
+  +Cancel(): void
+  +TransitionTo(newStatus): void
+  +TotalCost(): Money
+}
+
+class Money <<value object>> {
+  +Amount: decimal
+  +Currency: string
+  +operator +(left, right): Money
+  +operator -(left, right): Money
+  +operator ==(left, right): bool
+  +operator !=(left, right): bool
+}
+
+class Vin <<value object>> {
+  +Value: string
+}
+
+class PhoneNumber <<value object>> {
+  +Value: string
+}
+
+class JobFactory {
+  +CreateFromAppointment(appointment): Job
+}
+
+interface IPricingStrategy {
+  +Calculate(job): PricingResult
+}
+
+class FixedPricingStrategy
+class HourlyPricingStrategy
+class PartsAndLaborPricingStrategy
+
+class PricingResult {
+  +LaborCost: Money
+  +PartsCost: Money
+}
+
+interface IJobStatusObserver {
+  +Subscribe(job): void
+}
+
+class JobStatusHistoryObserver {
+  +History: IReadOnlyList<HistoryEntry>
+  +this[index]: HistoryEntry
+  +Subscribe(job): void
+}
+
+interface IRepository<T> {
+  +Add(item): void
+  +GetById(id): T?
+  +GetAll(): IEnumerable<T>
+}
+
+interface ICustomerRepository
+interface IVehicleRepository
+interface IMechanicRepository
+interface IAppointmentRepository {
+  +IsTimeSlotAvailable(vehicleId, scheduledAt): bool
+}
+interface IJobRepository {
+  +IsMechanicAvailable(mechanicId, scheduledAt): bool
+  +GetJobsByMechanic(mechanicId): IEnumerable<Job>
+}
+
+class InMemoryRepository<T>
+class LoggingRepositoryDecorator<T>
+class WorkshopFacade
+class JobQueryExtensions {
+  +CompletedRevenueForPeriod(jobs, from, to): decimal
+  +JoinWithMechanics(jobs, mechanics): IEnumerable<(Mechanic, Job)>
+}
+
+enum MechanicSpecialization {
+  Suspension
+  Alignment
+  Welding
+  Engine
+}
+
+enum AppointmentStatus {
+  Created
+  Confirmed
+  Cancelled
+}
+
+enum JobStatus {
+  Created
+  Assigned
+  InProgress
+  Completed
+  Cancelled
+}
+
+Person <|-- Customer
+Person <|-- Mechanic
+
+Customer "1" -- "0..*" Vehicle : owns
+Vehicle "1" -- "0..*" Appointment
+Appointment "1" -- "0..1" Job
+Mechanic "1" -- "0..*" Job
+
+Vehicle --> Vin
+Customer --> PhoneNumber
+Appointment --> AppointmentStatus
+Job --> JobStatus
+Mechanic --> MechanicSpecialization
+Job --> Money : costs
+
+JobFactory ..> Appointment
+JobFactory ..> Job
+
+IPricingStrategy <|.. FixedPricingStrategy
+IPricingStrategy <|.. HourlyPricingStrategy
+IPricingStrategy <|.. PartsAndLaborPricingStrategy
+IPricingStrategy ..> PricingResult
+PricingResult --> Money
+
+IJobStatusObserver <|.. JobStatusHistoryObserver
+JobStatusHistoryObserver ..> Job
+Job ..> IJobStatusObserver : StatusChanged event
+
+IRepository <|-- ICustomerRepository
+IRepository <|-- IVehicleRepository
+IRepository <|-- IMechanicRepository
+IRepository <|-- IAppointmentRepository
+IRepository <|-- IJobRepository
+
+IRepository <|.. InMemoryRepository
+IRepository <|.. LoggingRepositoryDecorator
+LoggingRepositoryDecorator o-- IRepository : wraps
+
+WorkshopFacade ..> IAppointmentRepository
+WorkshopFacade ..> IJobRepository
+WorkshopFacade ..> IMechanicRepository
+WorkshopFacade ..> IPricingStrategy
+WorkshopFacade ..> IJobStatusObserver
+
+JobQueryExtensions ..> Job
+JobQueryExtensions ..> Mechanic
+@enduml

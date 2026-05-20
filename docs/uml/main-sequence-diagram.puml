@@ -1,0 +1,86 @@
+@startuml
+skinparam ParticipantPadding 15
+skinparam BoxPadding 10
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 35
+
+actor Customer
+actor Admin
+participant "ConsoleApp" as Console
+participant "WorkshopFacade" as Facade
+participant "Use Cases" as UseCases
+participant "Repositories" as Repos
+participant "Domain\n(JobFactory, Job)" as Domain
+participant "PricingStrategy" as Pricing
+participant "StatusObserver" as Observer
+participant "JsonPersistence" as Json
+
+== Створення запису ==
+Customer -> Admin : звертається до СТО
+Admin -> Console : вводить дані запису
+Console -> Facade : CreateAppointment(vehicleId, time, problem)
+Facade -> UseCases : CreateAppointment.Execute(...)
+UseCases -> Repos : IsTimeSlotAvailable(...)
+
+alt час вільний
+    UseCases -> Repos : Add(appointment)
+    Facade --> Console : Appointment Created
+else час зайнятий
+    UseCases --> Facade : TimeSlotConflictException
+    Facade --> Console : помилка зайнятого слота
+    note right of Console : сценарій завершено
+end
+
+== Підтвердження ==
+Console -> Facade : ConfirmAppointment(appointmentId)
+Facade -> Repos : GetById(appointmentId)
+Facade --> Console : Appointment Confirmed
+
+== Створення роботи ==
+Customer -> Admin : авто приїжджає на СТО
+Console -> Facade : CreateJob(appointmentId)
+Facade -> UseCases : CreateJob.Execute(...)
+UseCases -> Repos : Get appointment / jobs
+UseCases -> Domain : CreateFromAppointment(appointment)
+UseCases -> Repos : Add(job)
+note right of Facade : Observer pattern:\nFacade підписується на\nзміни статусу job
+Facade -> Observer : Subscribe(job)
+Facade --> Console : Job Created
+
+== Призначення механіка ==
+Console -> Facade : AssignMechanic(jobId, mechanicId)
+Facade -> UseCases : AssignMechanic.Execute(...)
+UseCases -> Repos : Get job / mechanic
+UseCases -> Repos : IsMechanicAvailable(...)
+
+alt механік вільний
+    UseCases -> Domain : job.AssignMechanic(mechanic)
+    Domain -> Observer : StatusChanged event
+else механік зайнятий
+    UseCases --> Facade : MechanicUnavailableException
+    Facade --> Console : помилка зайнятого механіка
+    note right of Console : сценарій завершено
+end
+
+== Початок роботи ==
+Console -> Facade : StartJob(jobId)
+Facade -> UseCases : StartJob.Execute(...)
+UseCases -> Repos : GetById(jobId)
+UseCases -> Domain : job.Start()
+Domain -> Observer : StatusChanged event
+
+== Завершення роботи ==
+Console -> Facade : CompleteJob(jobId, strategy)
+Facade -> UseCases : CompleteJob.Execute(...)
+UseCases -> Repos : GetById(jobId)
+note right of Pricing : Strategy pattern:\nрізні моделі ціноутворення
+UseCases -> Pricing : Calculate(job)
+Pricing --> UseCases : Money (total cost)
+UseCases -> Domain : job.Complete(totalCost)
+Domain -> Observer : StatusChanged event
+Facade --> Console : Job Completed with total cost
+
+== Збереження стану ==
+Console -> Json : SaveAll(...)
+Json --> Console : JSON files saved
+@enduml

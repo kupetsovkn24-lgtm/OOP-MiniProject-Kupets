@@ -1,0 +1,19 @@
+@startuml
+[*] --> Created
+
+Created --> Assigned : assign mechanic
+Assigned --> InProgress : start job
+InProgress --> Completed : complete job
+
+Created --> Cancelled : cancel
+Assigned --> Cancelled : cancel
+
+Completed --> [*]
+Cancelled --> [*]
+
+note right of Completed
+Роботу не можна завершити,
+якщо вона не була InProgress.
+Після Completed змінювати статус не можна.
+end note
+@enduml

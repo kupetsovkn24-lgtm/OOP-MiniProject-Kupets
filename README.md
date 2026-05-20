@@ -1,0 +1,139 @@
+# CarWorkshop
+
+Навчальний ООП-проект на C#/.NET: **система управління ремонтними задачами СТО**.
+
+Проект моделює простий цикл роботи СТО: клієнт записується на ремонт, запис підтверджується, з нього створюється робота, механік призначається на задачу, робота проходить статуси і закривається з розрахунком вартості.
+
+Мета проекту - показати ООП-модель, бізнес-правила, SOLID, патерни, JSON-збереження і unit-тести без зайвого production-рівня. Це не CRM і не комерційний продукт, а навчальне ядро для практики з ООП.
+
+## Що демонструє проект
+
+- доменну модель СТО: `Customer`, `Vehicle`, `Appointment`, `Job`, `Mechanic`;
+- інкапсуляцію і валідацію через value objects: `Money`, `Vin`, `PhoneNumber`;
+- життєвий цикл `Job`: `Created -> Assigned -> InProgress -> Completed`;
+- перевірку зайнятості часового слота і механіка;
+- розрахунок вартості через різні pricing strategies;
+- збереження і відновлення стану через JSON DTO;
+- автоматизовані тести на xUnit і Moq.
+
+## Як запустити
+
+Передумова: встановлений .NET SDK 8.0 або новіший.
+
+З кореня репозиторію:
+
+```powershell
+dotnet build CarWorkshop.sln
+dotnet run --project src\CarWorkshop.Console\CarWorkshop.Console.csproj
+dotnet test CarWorkshop.sln
+```
+
+Команди виконують:
+
+- `dotnet build` - збирає всі проекти solution;
+- `dotnet run` - запускає консольну демонстрацію сценарію СТО;
+- `dotnet test` - запускає unit-тести.
+
+ConsoleApp має просте меню і демонструє сценарій: запис клієнта, підтвердження, створення роботи, призначення механіка, старт, завершення, розрахунок вартості, JSON save/load.
+
+Якщо в `bin\Debug\net8.0\data` вже є JSON-файли, застосунок покаже завантажені дані. Щоб побачити сценарій з нуля, можна очистити цю папку перед запуском.
+
+## Архітектура
+
+- `CarWorkshop.Domain` - сутності, value objects, бізнес-правила, enum, exceptions, patterns.
+- `CarWorkshop.Application` - use cases і `WorkshopFacade`.
+- `CarWorkshop.Infrastructure` - in-memory repositories, DTO, mapper, JSON persistence.
+- `CarWorkshop.Console` - демонстраційний сценарій.
+- `CarWorkshop.Tests` - unit-тести для ключових правил.
+
+Domain layer не залежить від Infrastructure або Console. Infrastructure не серіалізує domain-класи напряму, а використовує DTO + Mapper.
+
+## Основний scope
+
+- створення `Appointment`;
+- підтвердження запису;
+- створення `Job` через factory;
+- призначення механіка з перевіркою зайнятості;
+- переходи статусів `Created -> Assigned -> InProgress -> Completed`;
+- розрахунок вартості через strategy;
+- збереження і відновлення через JSON.
+
+## Поза scope
+
+- CRM, UI, Telegram, авторизація;
+- база даних;
+- склад запчастин;
+- SaaS/multi-tenant;
+- складна аналітика.
+
+Причина: це навчальний ООП-проект, а не production-продукт.
+
+## Патерни
+
+- Repository - інтерфейси в Domain, in-memory реалізації в Infrastructure.
+- Factory - `JobFactory.CreateFromAppointment(...)`.
+- Strategy - `IPricingStrategy`: fixed, hourly, parts + labor.
+- Observer - історія змін статусів `Job`.
+- Decorator - `LoggingRepositoryDecorator<T>`.
+- Facade - `WorkshopFacade` як єдина точка входу для ConsoleApp.
+
+Свідомо не використано State pattern: для 5 статусів таблиця переходів у `Job.TransitionTo(...)` простіша і читабельніша.
+
+## ООП-можливості
+
+- Наслідування: `Customer` і `Mechanic` наслідуються від базового `Person`.
+- Поліморфізм: `Person.GetDisplayName()` є `virtual`, а дочірні класи перевизначають його через `override` і використовують `base`.
+- Індексатор: `JobStatusHistoryObserver[index]` дає доступ до запису історії за індексом.
+- LINQ extension methods: `CompletedRevenueForPeriod(...)` використовує `Aggregate`, `JoinWithMechanics(...)` використовує `Join`.
+
+## UML
+
+Основні UML-артефакти для Lab 34:
+
+- `docs/class-diagram.puml`;
+- `docs/sequence-diagram.puml`.
+
+Додаткові UML-діаграми лежать у `docs/uml`. Для перегляду в GitHub/GitLab PNG-картинки лежать у `docs/uml/images`, а `.puml` файли залишені як вихідний код діаграм.
+
+- `class-diagram.puml`;
+- `job-state-diagram.puml`;
+- `main-sequence-diagram.puml`.
+
+## Артефакти Lab 34
+
+- `docs/vision.md` - постановка задачі, користувачі, сценарії та обмеження.
+- `docs/backlog.md` - план розвитку на Lab 34-37.
+- `docs/iteration-1.md` - передача в Lab 35.
+- `.github/workflows/dotnet.yml` - CI для restore, build і test.
+
+### Class Diagram
+
+![Class diagram](docs/uml/images/diagram1.png)
+
+### Job State Diagram
+
+![Job state diagram](docs/uml/images/diagram2.png)
+
+### Main Sequence Diagram
+
+![Main sequence diagram](docs/uml/images/diagram3.png)
+
+## Тести
+
+Тести запускаються командою:
+
+```powershell
+dotnet test CarWorkshop.sln
+```
+
+Покрито:
+
+- `Money` і операції з валютою;
+- валідні та невалідні переходи статусів `Job`;
+- `JobFactory`;
+- pricing strategies;
+- базове наслідування `Person`;
+- індексатор історії статусів;
+- LINQ extension methods з `Aggregate` і `Join`;
+- use cases з Moq для repository;
+- JSON save/load.
