@@ -16,10 +16,12 @@ public class WorkshopFacade
 
     private readonly CreateAppointmentUseCase _createAppointment;
     private readonly ConfirmAppointmentUseCase _confirmAppointment;
+    private readonly CancelAppointmentUseCase _cancelAppointment;
     private readonly CreateJobFromAppointmentUseCase _createJob;
     private readonly AssignMechanicUseCase _assignMechanic;
     private readonly StartJobUseCase _startJob;
     private readonly CompleteJobUseCase _completeJob;
+    private readonly CancelJobUseCase _cancelJob;
 
     private readonly List<IJobStatusObserver> _jobObservers = new();
 
@@ -36,10 +38,12 @@ public class WorkshopFacade
 
         _createAppointment  = new CreateAppointmentUseCase(appointments, vehicles);
         _confirmAppointment = new ConfirmAppointmentUseCase(appointments);
+        _cancelAppointment  = new CancelAppointmentUseCase(appointments, jobs);
         _createJob          = new CreateJobFromAppointmentUseCase(appointments, jobs);
         _assignMechanic     = new AssignMechanicUseCase(jobs, mechanics);
         _startJob           = new StartJobUseCase(jobs);
         _completeJob        = new CompleteJobUseCase(jobs);
+        _cancelJob          = new CancelJobUseCase(jobs);
     }
 
     // ── Observer wiring ───────────────────────────────────────────────────────
@@ -54,6 +58,9 @@ public class WorkshopFacade
 
     public Appointment ConfirmAppointment(Guid appointmentId) =>
         _confirmAppointment.Execute(appointmentId);
+
+    public Appointment CancelAppointment(Guid appointmentId) =>
+        _cancelAppointment.Execute(appointmentId);
 
     public Job CreateJob(Guid appointmentId)
     {
@@ -72,6 +79,9 @@ public class WorkshopFacade
     public Job CompleteJob(Guid jobId, IPricingStrategy strategy) =>
         _completeJob.Execute(jobId, strategy);
 
+    public Job CancelJob(Guid jobId) =>
+        _cancelJob.Execute(jobId);
+
     // ── LINQ queries ──────────────────────────────────────────────────────────
 
     public IEnumerable<Appointment> GetAppointmentsForDay(DateTime day) =>
@@ -87,6 +97,11 @@ public class WorkshopFacade
 
     public decimal GetRevenueForPeriod(DateTime from, DateTime to) =>
         _jobs.GetAll().CompletedRevenueForPeriod(from, to);
+
+    public IEnumerable<Job> GetCompletedJobs() =>
+        _jobs.GetAll()
+            .Where(job => job.Status == JobStatus.Completed)
+            .OrderByDescending(job => job.CompletedAt);
 
     public IEnumerable<(string Mechanic, int JobCount)> GetJobCountByMechanic() =>
         _jobs.GetAll()
