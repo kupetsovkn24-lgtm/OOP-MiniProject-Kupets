@@ -110,6 +110,10 @@ Domain layer не залежить від Infrastructure або Console. Infrast
 - `docs/iteration-1.md` - передача в Lab 35.
 - `docs/iteration-2-plan.md` - план виконання Lab 35.
 - `docs/iteration-2.md` - результат Lab 35 і передача в Lab 36.
+- `docs/test-strategy.md` - тестова стратегія Lab 36.
+- `docs/test-matrix.md` - відповідність сценаріїв і тестів.
+- `docs/iteration-3.md` - результат Lab 36 і передача в Lab 37.
+- `TESTING.md` - запуск тестів та coverage.
 - `.github/workflows/dotnet.yml` - CI для restore, build і test.
 
 ### Class Diagram
@@ -146,4 +150,4 @@ dotnet test CarWorkshop.sln
 - скасування записів і робіт;
 - LINQ-запити через facade.
 
-Після Lab 35 у наборі тестів проходить `47` тестів, зокрема перевірки асинхронного JSON persistence та негативних сценаріїв даних.
+Після Lab 36 проходить `56` тестів, з них `9` окремих integration tests. Локальний coverage: `90.46%` lines і `60.67%` branches.
