@@ -19,5 +19,11 @@ public class InMemoryRepository<T> : IRepository<T>
 
     public IEnumerable<T> GetAll() => _items.AsReadOnly();
 
+    public void ReplaceAll(IEnumerable<T> items)
+    {
+        _items.Clear();
+        _items.AddRange(items);
+    }
+
     protected List<T> Items => _items;
 }

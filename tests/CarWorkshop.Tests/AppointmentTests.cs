@@ -19,4 +19,24 @@ public class AppointmentTests
                 DateTime.UtcNow.AddDays(1),
                 ""));
     }
+
+    [Fact]
+    public void Cancel_WhenAppointmentIsCreated_ChangesStatus()
+    {
+        var appointment = TestData.Appointment();
+
+        appointment.Cancel();
+
+        Assert.Equal(CarWorkshop.Domain.Enums.AppointmentStatus.Cancelled, appointment.Status);
+    }
+
+    [Fact]
+    public void Confirm_WhenAppointmentWasCancelled_Throws()
+    {
+        var appointment = TestData.Appointment();
+        appointment.Cancel();
+
+        Assert.Throws<CarWorkshop.Domain.Exceptions.InvalidAppointmentTransitionException>(
+            () => appointment.Confirm());
+    }
 }

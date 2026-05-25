@@ -1,6 +1,7 @@
 ﻿using CarWorkshop.Application.Facade;
 using CarWorkshop.Domain.Entities;
 using CarWorkshop.Domain.Enums;
+using CarWorkshop.Domain.Exceptions;
 using CarWorkshop.Domain.Observers;
 using CarWorkshop.Domain.Pricing;
 using CarWorkshop.Domain.ValueObjects;
@@ -22,7 +23,15 @@ var jobsLogged = new LoggingRepositoryDecorator<Job>(
 
 var dataDir     = Path.Combine(AppContext.BaseDirectory, "data");
 var persistence = new JsonPersistence(dataDir);
-persistence.LoadAll(customers, mechanics, vehicles, appointments, jobsInner);
+try
+{
+    await persistence.LoadAllAsync(customers, mechanics, vehicles, appointments, jobsInner);
+}
+catch (InvalidDataException exception)
+{
+    Console.WriteLine($"Не вдалося відновити JSON-дані: {exception.Message}");
+    Console.WriteLine("Програма стартує з порожнім станом.\n");
+}
 
 // ── Facade (єдина точка входу) ────────────────────────────────────────────────
 
@@ -41,6 +50,10 @@ while (true)
 {
     Console.WriteLine("1. Запустити повний сценарій ремонту");
     Console.WriteLine("2. Показати завантажені роботи");
+    Console.WriteLine("3. Створити і скасувати запис");
+    Console.WriteLine("4. Показати запити та статистику");
+    Console.WriteLine("5. Зберегти стан у JSON");
+    Console.WriteLine("6. Відновити стан із JSON");
     Console.WriteLine("0. Вийти");
     Console.Write("Оберіть дію: ");
 
@@ -50,25 +63,55 @@ while (true)
     if (choice is null)
         return;
 
-    switch (choice.Trim())
+    var command = choice.Trim().TrimStart('\uFEFF');
+
+    try
     {
-        case "1":
-            RunDemoScenario();
-            break;
-        case "2":
-            PrintLoadedJobs();
-            break;
-        case "0":
-            return;
-        default:
-            Console.WriteLine("Невідома команда. Спробуйте ще раз.");
-            break;
+        switch (command)
+        {
+            case "1":
+                await RunDemoScenarioAsync();
+                break;
+            case "2":
+                PrintLoadedJobs();
+                break;
+            case "3":
+                RunAppointmentCancellationScenario();
+                break;
+            case "4":
+                PrintQueriesAndStatistics();
+                break;
+            case "5":
+                await SaveStateAsync();
+                break;
+            case "6":
+                await persistence.LoadAllAsync(customers, mechanics, vehicles, appointments, jobsInner);
+                Console.WriteLine("Стан успішно відновлено з JSON.");
+                break;
+            case "0":
+                return;
+            default:
+                Console.WriteLine("Невідома команда. Спробуйте ще раз.");
+                break;
+        }
+    }
+    catch (DomainException exception)
+    {
+        Console.WriteLine($"Бізнес-операцію відхилено: {exception.Message}");
+    }
+    catch (InvalidDataException exception)
+    {
+        Console.WriteLine($"Помилка даних: {exception.Message}");
+    }
+    catch (IOException exception)
+    {
+        Console.WriteLine($"Помилка роботи з файлом: {exception.Message}");
     }
 
     Console.WriteLine();
 }
 
-void RunDemoScenario()
+async Task RunDemoScenarioAsync()
 {
     if (customers.GetAll().Any())
     {
@@ -123,24 +166,69 @@ void RunDemoScenario()
     foreach (var entry in historyObserver.History)
         Console.WriteLine($"  {entry.ChangedAt:HH:mm:ss.fff}  {entry.OldStatus,-10} → {entry.NewStatus}");
 
-    Console.WriteLine("\n── LINQ: записи на сьогодні ─────────────────────────");
-    foreach (var a in workshop.GetAppointmentsForDay(scheduledAt))
-        Console.WriteLine($"  {a.ScheduledAt:dd.MM HH:mm}  {a.ProblemDescription}  [{a.Status}]");
-
-    Console.WriteLine("\n── LINQ: виручка за останні 7 днів ─────────────────");
-    var revenue = workshop.GetRevenueForPeriod(DateTime.UtcNow.AddDays(-7), DateTime.UtcNow);
-    Console.WriteLine($"  {revenue} UAH");
-
-    Console.WriteLine("\n── LINQ: роботи по механіках ────────────────────────");
-    foreach (var (mechanic, count) in workshop.GetJobCountByMechanic())
-        Console.WriteLine($"  {mechanic}: {count} роб.");
-
     Console.WriteLine("\n── Decorator: звернення через LoggingRepository ─────");
     _ = jobsLogged.GetAll().ToList();
     _ = jobsLogged.GetById(job.Id);
 
-    persistence.SaveAll(customers, mechanics, vehicles, appointments, jobsInner);
+    await SaveStateAsync();
     Console.WriteLine($"\nДані збережено у: {dataDir}");
+}
+
+void RunAppointmentCancellationScenario()
+{
+    var vehicle = vehicles.GetAll().FirstOrDefault();
+    if (vehicle is null)
+    {
+        Console.WriteLine("Спочатку запустіть повний сценарій, щоб створити клієнта й авто.");
+        return;
+    }
+
+    var scheduledAt = DateTime.UtcNow.AddDays(2);
+    var appointment = workshop.CreateAppointment(vehicle.Id, scheduledAt, "Перевірка гальм");
+    workshop.CancelAppointment(appointment.Id);
+
+    Console.WriteLine($"Запис {appointment.Id} створено і скасовано. Статус: {appointment.Status}.");
+}
+
+void PrintQueriesAndStatistics()
+{
+    var appointmentsList = appointments.GetAll().ToList();
+    if (appointmentsList.Count == 0)
+    {
+        Console.WriteLine("Даних для запитів ще немає.");
+        return;
+    }
+
+    var day = appointmentsList.First().ScheduledAt;
+    Console.WriteLine($"Записи на {day:dd.MM.yyyy}:");
+    foreach (var appointment in workshop.GetAppointmentsForDay(day))
+        Console.WriteLine($"  {appointment.ProblemDescription} [{appointment.Status}]");
+
+    Console.WriteLine("\nЗавершені роботи:");
+    foreach (var job in workshop.GetCompletedJobs())
+        Console.WriteLine($"  {job.Id} | {job.TotalCost()}");
+
+    var mechanic = mechanics.GetAll().FirstOrDefault();
+    if (mechanic is not null)
+    {
+        Console.WriteLine($"\nРоботи механіка {mechanic.FullName}:");
+        foreach (var job in workshop.GetJobsByMechanicInPeriod(
+                     mechanic.Id, DateTime.UtcNow.AddDays(-30), DateTime.UtcNow.AddDays(30)))
+            Console.WriteLine($"  {job.Id} [{job.Status}]");
+    }
+
+    var revenue = workshop.GetRevenueForPeriod(DateTime.UtcNow.AddDays(-30), DateTime.UtcNow.AddDays(30));
+    Console.WriteLine($"\nЗагальна виручка: {revenue} UAH");
+
+    Console.WriteLine("Кількість робіт по механіках:");
+    foreach (var (mechanicName, count) in workshop.GetJobCountByMechanic())
+        Console.WriteLine($"  {mechanicName}: {count} роб.");
+}
+
+async Task SaveStateAsync()
+{
+    await persistence.SaveAllAsync(customers, mechanics, vehicles, appointments, jobsInner);
+    Console.WriteLine("Стан успішно збережено у JSON.");
 }
 
 void PrintLoadedJobs()

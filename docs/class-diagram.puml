@@ -117,9 +117,19 @@ interface IJobRepository {
 class InMemoryRepository<T>
 class LoggingRepositoryDecorator<T>
 class WorkshopFacade
+class CancelAppointmentUseCase {
+  +Execute(appointmentId): Appointment
+}
+class CancelJobUseCase {
+  +Execute(jobId): Job
+}
 class JobQueryExtensions {
   +CompletedRevenueForPeriod(jobs, from, to): decimal
   +JoinWithMechanics(jobs, mechanics): IEnumerable<(Mechanic, Job)>
+}
+class JsonPersistence {
+  +SaveAllAsync(...): Task
+  +LoadAllAsync(...): Task
 }
 
 enum MechanicSpecialization {
@@ -186,7 +196,13 @@ WorkshopFacade ..> IJobRepository
 WorkshopFacade ..> IMechanicRepository
 WorkshopFacade ..> IPricingStrategy
 WorkshopFacade ..> IJobStatusObserver
+WorkshopFacade ..> CancelAppointmentUseCase
+WorkshopFacade ..> CancelJobUseCase
+CancelAppointmentUseCase ..> IAppointmentRepository
+CancelAppointmentUseCase ..> IJobRepository
+CancelJobUseCase ..> IJobRepository
 
 JobQueryExtensions ..> Job
 JobQueryExtensions ..> Mechanic
+JsonPersistence ..> InMemoryRepository : restores JSON DTO state
 @enduml
