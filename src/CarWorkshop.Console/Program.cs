@@ -22,7 +22,7 @@ var jobsLogged = new LoggingRepositoryDecorator<Job>(
     msg => Console.WriteLine($"  LOG {msg}"));
 
 var dataDir     = Path.Combine(AppContext.BaseDirectory, "data");
-var persistence = new JsonPersistence(dataDir);
+var persistence = new JsonPersistence(dataDir, message => Console.Error.WriteLine($"DATA ERROR: {message}"));
 try
 {
     await persistence.LoadAllAsync(customers, mechanics, vehicles, appointments, jobsInner);

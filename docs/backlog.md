@@ -29,15 +29,15 @@
 
 ## Ітерація 3 - Lab 36: quality gate, тести, fault handling
 
-Мета: посилити якість, стабільність і регресійний захист.
+Статус: виконано локально, очікує перевірки та окремого рішення щодо commit/push.
 
-План:
+Реалізовано:
 
-- Розширити unit-тести для edge cases.
-- Додати щонайменше 8 інтеграційних тестів для повного циклу persistence.
-- Перевірити code smells і прибрати зайве дублювання.
-- Уточнити стратегію винятків і Result-подібних відповідей там, де це доречно.
-- Додати coverage і quality gate у CI.
+- Додано `docs/test-strategy.md`, `docs/test-matrix.md`, `docs/iteration-3.md` і `TESTING.md`.
+- Додано 9 окремих інтеграційних тестів для JSON persistence і повного циклу сценаріїв.
+- Перевірено fault handling і додано журналювання помилок persistence через callback.
+- Підключено coverage report до GitHub Actions.
+- Зафіксовано результати coverage і ризики для Lab 37.
 
 ## Ітерація 4 - Lab 37: release, документація, демо
 

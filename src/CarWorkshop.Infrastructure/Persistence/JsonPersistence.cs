@@ -9,15 +9,17 @@ namespace CarWorkshop.Infrastructure.Persistence;
 public class JsonPersistence
 {
     private readonly string _dataDirectory;
+    private readonly Action<string>? _errorLog;
 
     private static readonly JsonSerializerOptions _options = new()
     {
         WriteIndented = true
     };
 
-    public JsonPersistence(string dataDirectory)
+    public JsonPersistence(string dataDirectory, Action<string>? errorLog = null)
     {
         _dataDirectory = dataDirectory;
+        _errorLog = errorLog;
         Directory.CreateDirectory(dataDirectory);
     }
 
@@ -29,11 +31,19 @@ public class JsonPersistence
         InMemoryJobRepository jobs,
         CancellationToken cancellationToken = default)
     {
-        await WriteJsonAsync("customers.json", customers.GetAll().Select(DomainMapper.ToDto), cancellationToken);
-        await WriteJsonAsync("mechanics.json", mechanics.GetAll().Select(DomainMapper.ToDto), cancellationToken);
-        await WriteJsonAsync("vehicles.json", vehicles.GetAll().Select(DomainMapper.ToDto), cancellationToken);
-        await WriteJsonAsync("appointments.json", appointments.GetAll().Select(DomainMapper.ToDto), cancellationToken);
-        await WriteJsonAsync("jobs.json", jobs.GetAll().Select(DomainMapper.ToDto), cancellationToken);
+        try
+        {
+            await WriteJsonAsync("customers.json", customers.GetAll().Select(DomainMapper.ToDto), cancellationToken);
+            await WriteJsonAsync("mechanics.json", mechanics.GetAll().Select(DomainMapper.ToDto), cancellationToken);
+            await WriteJsonAsync("vehicles.json", vehicles.GetAll().Select(DomainMapper.ToDto), cancellationToken);
+            await WriteJsonAsync("appointments.json", appointments.GetAll().Select(DomainMapper.ToDto), cancellationToken);
+            await WriteJsonAsync("jobs.json", jobs.GetAll().Select(DomainMapper.ToDto), cancellationToken);
+        }
+        catch (IOException exception)
+        {
+            _errorLog?.Invoke($"Could not save JSON data: {exception.Message}");
+            throw;
+        }
     }
 
     public async Task LoadAllAsync(
@@ -78,15 +88,24 @@ public class JsonPersistence
             appointments.ReplaceAll(loadedAppointments);
             jobs.ReplaceAll(loadedJobs);
         }
-        catch (InvalidDataException)
+        catch (InvalidDataException exception)
         {
+            _errorLog?.Invoke(exception.Message);
             throw;
         }
         catch (Exception exception) when (exception is ArgumentException
             or KeyNotFoundException
             or InvalidOperationException)
         {
-            throw new InvalidDataException("JSON data contains invalid or conflicting domain records.", exception);
+            var dataException = new InvalidDataException(
+                "JSON data contains invalid or conflicting domain records.", exception);
+            _errorLog?.Invoke(dataException.Message);
+            throw dataException;
+        }
+        catch (IOException exception)
+        {
+            _errorLog?.Invoke($"Could not load JSON data: {exception.Message}");
+            throw;
         }
     }
 
