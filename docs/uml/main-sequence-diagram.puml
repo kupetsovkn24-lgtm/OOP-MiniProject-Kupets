@@ -15,6 +15,16 @@ participant "PricingStrategy" as Pricing
 participant "StatusObserver" as Observer
 participant "JsonPersistence" as Json
 
+== Відновлення при запуску ==
+Console -> Json : LoadAllAsync(...)
+alt JSON коректний або файлів немає
+    Json --> Console : відновлений або порожній стан
+else JSON пошкоджений
+    Json -> Console : DATA ERROR log callback
+    Json --> Console : InvalidDataException
+    Console -> Console : показати помилку і працювати з порожнім станом
+end
+
 == Створення запису ==
 Customer -> Admin : звертається до СТО
 Admin -> Console : вводить дані запису
@@ -29,6 +39,17 @@ else час зайнятий
     UseCases --> Facade : TimeSlotConflictException
     Facade --> Console : помилка зайнятого слота
     note right of Console : сценарій завершено
+end
+
+== Скасування запису ==
+Console -> Facade : CancelAppointment(appointmentId)
+Facade -> UseCases : CancelAppointment.Execute(...)
+UseCases -> Repos : перевірити, що Job ще не створений
+alt роботи немає
+    UseCases -> Domain : appointment.Cancel()
+    Facade --> Console : Appointment Cancelled
+else робота вже існує
+    UseCases --> Console : операцію відхилено
 end
 
 == Підтвердження ==
@@ -81,6 +102,6 @@ Domain -> Observer : StatusChanged event
 Facade --> Console : Job Completed with total cost
 
 == Збереження стану ==
-Console -> Json : SaveAll(...)
+Console -> Json : SaveAllAsync(...)
 Json --> Console : JSON files saved
 @enduml

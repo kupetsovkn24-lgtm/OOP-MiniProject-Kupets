@@ -28,8 +28,10 @@ XML-звіт буде створений у `TestResults/<run-id>/coverage.cober
 
 - Усього тестів: `56`.
 - Окремі integration tests для Lab 36: `9`.
-- Локальний coverage: `90.46%` lines, `60.67%` branches.
+- Фінальний локальний coverage Lab 37: `90.44%` lines (`568/628`), `60.67%` branches (`108/178`).
 
 ## CI quality gate
 
 GitHub Actions виконує restore, build і тести з coverage. Якщо build або тести падають, pipeline не проходить. XML coverage додається до workflow run як artifact `coverage-report`.
+
+Матриця перевірок наведена у [docs/test-matrix.md](docs/test-matrix.md), а тестова стратегія - у [docs/test-strategy.md](docs/test-strategy.md).

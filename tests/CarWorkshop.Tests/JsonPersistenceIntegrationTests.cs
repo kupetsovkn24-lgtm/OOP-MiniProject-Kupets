@@ -233,7 +233,7 @@ public class JsonPersistenceIntegrationTests
 
         public WorkshopState()
         {
-            Facade = new WorkshopFacade(Customers, Vehicles, Appointments, Jobs, Mechanics);
+            Facade = new WorkshopFacade(Vehicles, Appointments, Jobs, Mechanics);
         }
 
         public (Customer Customer, Vehicle Vehicle, Mechanic Mechanic) AddReferenceData()

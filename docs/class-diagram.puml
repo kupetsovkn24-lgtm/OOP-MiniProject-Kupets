@@ -128,6 +128,7 @@ class JobQueryExtensions {
   +JoinWithMechanics(jobs, mechanics): IEnumerable<(Mechanic, Job)>
 }
 class JsonPersistence {
+  +JsonPersistence(dataDirectory, errorLog?)
   +SaveAllAsync(...): Task
   +LoadAllAsync(...): Task
 }
@@ -205,4 +206,5 @@ CancelJobUseCase ..> IJobRepository
 JobQueryExtensions ..> Job
 JobQueryExtensions ..> Mechanic
 JsonPersistence ..> InMemoryRepository : restores JSON DTO state
+JsonPersistence ..> Action : logs load/save failures
 @enduml

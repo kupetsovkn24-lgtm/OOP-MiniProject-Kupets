@@ -6,6 +6,10 @@ using CarWorkshop.Infrastructure.Repositories;
 
 namespace CarWorkshop.Infrastructure.Persistence;
 
+/// <summary>
+/// Saves and restores workshop state as JSON DTO files.
+/// Domain invariants are recreated through <see cref="DomainMapper"/>.
+/// </summary>
 public class JsonPersistence
 {
     private readonly string _dataDirectory;
@@ -23,6 +27,9 @@ public class JsonPersistence
         Directory.CreateDirectory(dataDirectory);
     }
 
+    /// <summary>
+    /// Persists the current state to JSON files asynchronously.
+    /// </summary>
     public async Task SaveAllAsync(
         InMemoryCustomerRepository customers,
         InMemoryMechanicRepository mechanics,
@@ -46,6 +53,10 @@ public class JsonPersistence
         }
     }
 
+    /// <summary>
+    /// Restores state from JSON files; missing files represent an empty initial state.
+    /// Invalid data causes <see cref="InvalidDataException"/> without replacing repository contents.
+    /// </summary>
     public async Task LoadAllAsync(
         InMemoryCustomerRepository customers,
         InMemoryMechanicRepository mechanics,
