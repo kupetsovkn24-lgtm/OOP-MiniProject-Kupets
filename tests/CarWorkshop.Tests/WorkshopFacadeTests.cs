@@ -67,6 +67,33 @@ public class WorkshopFacadeTests
         Assert.Equal(1, result.JobCount);
     }
 
+    [Fact]
+    public void GetExpensiveCompletedJobsReport_ReturnsOnlyJobsAboveThreshold()
+    {
+        var setup = CreateSetup();
+        var expensiveJob = TestData.StartedJob();
+        expensiveJob.Complete(new Money(1200, "UAH"), new Money(3500, "UAH"));
+        var inexpensiveJob = TestData.StartedJob();
+        inexpensiveJob.Complete(new Money(1000, "UAH"), new Money(500, "UAH"));
+        setup.Jobs.Add(expensiveJob);
+        setup.Jobs.Add(inexpensiveJob);
+
+        var result = setup.Facade.GetExpensiveCompletedJobsReport(4000);
+
+        Assert.Single(result.Jobs);
+        Assert.Equal(expensiveJob.Id, result.Jobs[0].Id);
+        Assert.Equal(4700, result.TotalRevenue);
+    }
+
+    [Fact]
+    public void GetExpensiveCompletedJobsReport_WhenMinimumIsNegative_Throws()
+    {
+        var setup = CreateSetup();
+
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => setup.Facade.GetExpensiveCompletedJobsReport(-1));
+    }
+
     private static Setup CreateSetup()
     {
         var vehicles = new InMemoryVehicleRepository();

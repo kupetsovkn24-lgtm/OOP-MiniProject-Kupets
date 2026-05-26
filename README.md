@@ -17,7 +17,7 @@
 - розрахунок вартості через різні pricing strategies;
 - асинхронне збереження і відновлення стану через JSON DTO;
 - скасування запису до створення ремонтної роботи;
-- LINQ-запити та коротку статистику для адміністратора;
+- LINQ-запити, коротку статистику та звіт дорогих завершених ремонтів;
 - автоматизовані тести на xUnit і Moq.
 
 ## Як запустити
@@ -63,6 +63,7 @@ Domain layer не залежить від Infrastructure або Console. Infrast
 - асинхронне збереження і відновлення через JSON;
 - скасування запису до створення пов'язаної роботи;
 - перегляд завершених робіт та агрегованої статистики.
+- фільтрація дорогих завершених ремонтів і звіт про їх виручку.
 
 ## Поза scope
 
@@ -90,7 +91,7 @@ Domain layer не залежить від Infrastructure або Console. Infrast
 - Наслідування: `Customer` і `Mechanic` наслідуються від базового `Person`.
 - Поліморфізм: `Person.GetDisplayName()` є `virtual`, а дочірні класи перевизначають його через `override` і використовують `base`.
 - Індексатор: `JobStatusHistoryObserver[index]` дає доступ до запису історії за індексом.
-- LINQ extension methods: `CompletedRevenueForPeriod(...)` використовує `Aggregate`, `JoinWithMechanics(...)` використовує `Join`.
+- LINQ extension methods: `CompletedRevenueForPeriod(...)` використовує `Aggregate`, `JoinWithMechanics(...)` використовує `Join`, а `BuildCompletedJobsReport(...)` використовує delegate-фільтр.
 
 ## Документація
 
@@ -102,6 +103,11 @@ Domain layer не залежить від Infrastructure або Console. Infrast
 - [docs/release-plan.md](docs/release-plan.md) - scope релізу `v1.0.0`.
 - [docs/defense-qa.md](docs/defense-qa.md) - короткі відповіді на питання.
 - [docs/syllabus-coverage.md](docs/syllabus-coverage.md) - покриття тем курсу.
+- [docs/self-audit.md](docs/self-audit.md) - аудит перед самостійною роботою No29.
+- [docs/extension-plan.md](docs/extension-plan.md) - план залежних розширень IW29.
+- [docs/extension-report.md](docs/extension-report.md) - результат розширень IW29.
+- [docs/defense-checklist.md](docs/defense-checklist.md) - чекліст підготовки до захисту.
+- [docs/CarWorkshop.pdf](docs/CarWorkshop.pdf) - коротка презентація до захисту.
 
 ## UML
 
@@ -124,6 +130,8 @@ Domain layer не залежить від Infrastructure або Console. Infrast
 - `docs/iteration-3.md` - результат Lab 36 і передача в Lab 37.
 - `docs/release-plan.md` - фінальний scope і підготовка `v1.0.0`.
 - `docs/performance-note.md` - коротка оцінка структур даних.
+- `docs/self-audit.md`, `docs/extension-plan.md`, `docs/extension-report.md` - артефакти IW29.
+- `docs/defense-checklist.md` - фінальна підготовка до захисту.
 - `TESTING.md` - запуск тестів та coverage.
 - `.github/workflows/dotnet.yml` - CI для restore, build і test.
 
@@ -148,5 +156,6 @@ dotnet test CarWorkshop.sln
 - async JSON save/load, пошкоджені дані й відсутні файли;
 - скасування записів і робіт;
 - LINQ-запити через facade.
+- delegate-фільтр і звіт дорогих завершених ремонтів.
 
-Після фінального refactoring Lab 37 проходить `56` тестів, з них `9` окремих integration tests. Локальний coverage: `90.44%` lines і `60.67%` branches.
+Після IW29 проходить `62` тести, з них `9` окремих integration tests. Локальний coverage: `90.79%` lines і `61.11%` branches.

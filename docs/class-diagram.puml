@@ -125,7 +125,14 @@ class CancelJobUseCase {
 }
 class JobQueryExtensions {
   +CompletedRevenueForPeriod(jobs, from, to): decimal
+  +FilterCompletedJobs(jobs, condition: Func<Job, bool>): IEnumerable<Job>
+  +BuildCompletedJobsReport(jobs, condition: Func<Job, bool>): CompletedJobsReport
   +JoinWithMechanics(jobs, mechanics): IEnumerable<(Mechanic, Job)>
+}
+class CompletedJobsReport {
+  +Jobs: IReadOnlyList<Job>
+  +TotalRevenue: decimal
+  +JobCount: int
 }
 class JsonPersistence {
   +JsonPersistence(dataDirectory, errorLog?)
@@ -199,12 +206,15 @@ WorkshopFacade ..> IPricingStrategy
 WorkshopFacade ..> IJobStatusObserver
 WorkshopFacade ..> CancelAppointmentUseCase
 WorkshopFacade ..> CancelJobUseCase
+WorkshopFacade ..> CompletedJobsReport
 CancelAppointmentUseCase ..> IAppointmentRepository
 CancelAppointmentUseCase ..> IJobRepository
 CancelJobUseCase ..> IJobRepository
 
 JobQueryExtensions ..> Job
 JobQueryExtensions ..> Mechanic
+JobQueryExtensions ..> CompletedJobsReport
+CompletedJobsReport --> Job
 JsonPersistence ..> InMemoryRepository : restores JSON DTO state
 JsonPersistence ..> Action : logs load/save failures
 @enduml

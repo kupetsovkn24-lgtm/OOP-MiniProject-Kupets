@@ -104,4 +104,11 @@ Facade --> Console : Job Completed with total cost
 == Збереження стану ==
 Console -> Json : SaveAllAsync(...)
 Json --> Console : JSON files saved
+
+== Аналітичний звіт IW29 ==
+Admin -> Console : обирає запити і статистику
+Console -> Facade : GetExpensiveCompletedJobsReport(4000)
+Facade -> Repos : GetAll jobs
+Facade -> Facade : FilterCompletedJobs(condition)\nBuildCompletedJobsReport(...)
+Facade --> Console : count + total revenue
 @enduml

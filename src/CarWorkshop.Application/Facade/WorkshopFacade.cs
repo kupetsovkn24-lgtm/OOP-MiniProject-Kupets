@@ -1,4 +1,5 @@
 using CarWorkshop.Application.Extensions;
+using CarWorkshop.Application.Reports;
 using CarWorkshop.Application.UseCases;
 using CarWorkshop.Domain.Entities;
 using CarWorkshop.Domain.Enums;
@@ -104,6 +105,18 @@ public class WorkshopFacade
         _jobs.GetAll()
             .Where(job => job.Status == JobStatus.Completed)
             .OrderByDescending(job => job.CompletedAt);
+
+    /// <summary>
+    /// Returns completed jobs whose total cost meets the specified report threshold.
+    /// </summary>
+    public CompletedJobsReport GetExpensiveCompletedJobsReport(decimal minimumTotal)
+    {
+        if (minimumTotal < 0)
+            throw new ArgumentOutOfRangeException(nameof(minimumTotal), "Minimum total cannot be negative.");
+
+        return _jobs.GetAll()
+            .BuildCompletedJobsReport(job => job.TotalCost().Amount >= minimumTotal);
+    }
 
     public IEnumerable<(string Mechanic, int JobCount)> GetJobCountByMechanic() =>
         _jobs.GetAll()
