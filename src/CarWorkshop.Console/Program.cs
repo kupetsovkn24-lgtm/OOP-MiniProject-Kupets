@@ -35,7 +35,7 @@ catch (InvalidDataException exception)
 
 // ── Facade (єдина точка входу) ────────────────────────────────────────────────
 
-var workshop = new WorkshopFacade(customers, vehicles, appointments, jobsInner, mechanics);
+var workshop = new WorkshopFacade(vehicles, appointments, jobsInner, mechanics);
 
 // Observer: підписуємось на зміни статусів ще до першого Job
 var historyObserver = new JobStatusHistoryObserver();

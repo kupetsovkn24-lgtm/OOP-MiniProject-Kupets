@@ -69,7 +69,6 @@ public class WorkshopFacadeTests
 
     private static Setup CreateSetup()
     {
-        var customers = new InMemoryCustomerRepository();
         var vehicles = new InMemoryVehicleRepository();
         var appointments = new InMemoryAppointmentRepository();
         var jobs = new InMemoryJobRepository();
@@ -77,12 +76,11 @@ public class WorkshopFacadeTests
         var customer = TestData.Customer();
         var vehicle = TestData.Vehicle(customer);
         var mechanic = TestData.Mechanic();
-        customers.Add(customer);
         vehicles.Add(vehicle);
         mechanics.Add(mechanic);
 
         return new Setup(
-            new WorkshopFacade(customers, vehicles, appointments, jobs, mechanics),
+            new WorkshopFacade(vehicles, appointments, jobs, mechanics),
             vehicle,
             mechanic,
             appointments,

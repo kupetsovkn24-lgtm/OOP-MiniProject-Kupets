@@ -8,6 +8,9 @@ using CarWorkshop.Domain.Pricing;
 
 namespace CarWorkshop.Application.Facade;
 
+/// <summary>
+/// Coordinates workshop use cases and read-only queries for the console UI.
+/// </summary>
 public class WorkshopFacade
 {
     private readonly IAppointmentRepository _appointments;
@@ -26,7 +29,6 @@ public class WorkshopFacade
     private readonly List<IJobStatusObserver> _jobObservers = new();
 
     public WorkshopFacade(
-        ICustomerRepository customers,
         IVehicleRepository vehicles,
         IAppointmentRepository appointments,
         IJobRepository jobs,

@@ -20,6 +20,7 @@ Console -> Json : LoadAllAsync(...)
 alt JSON коректний або файлів немає
     Json --> Console : відновлений або порожній стан
 else JSON пошкоджений
+    Json -> Console : DATA ERROR log callback
     Json --> Console : InvalidDataException
     Console -> Console : показати помилку і працювати з порожнім станом
 end

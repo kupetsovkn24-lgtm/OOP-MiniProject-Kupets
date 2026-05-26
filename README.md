@@ -1,5 +1,7 @@
 # CarWorkshop
 
+[![.NET CI](https://github.com/kupetsovkn24-lgtm/OOP-MiniProject-Kupets/actions/workflows/dotnet.yml/badge.svg)](https://github.com/kupetsovkn24-lgtm/OOP-MiniProject-Kupets/actions/workflows/dotnet.yml)
+
 Навчальний ООП-проект на C#/.NET: **система управління ремонтними задачами СТО**.
 
 Проект моделює простий цикл роботи СТО: клієнт записується на ремонт, запис підтверджується, з нього створюється робота, механік призначається на задачу, робота проходить статуси і закривається з розрахунком вартості.
@@ -90,20 +92,27 @@ Domain layer не залежить від Infrastructure або Console. Infrast
 - Індексатор: `JobStatusHistoryObserver[index]` дає доступ до запису історії за індексом.
 - LINQ extension methods: `CompletedRevenueForPeriod(...)` використовує `Aggregate`, `JoinWithMechanics(...)` використовує `Join`.
 
+## Документація
+
+- [USER_GUIDE.md](USER_GUIDE.md) - як запустити та показати сценарій.
+- [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) - шари, розширення й правила коду.
+- [TESTING.md](TESTING.md) - тести, coverage і CI.
+- [DEMO.md](DEMO.md) - сценарій захисту на 3-5 хвилин.
+- [FINAL_REPORT.md](FINAL_REPORT.md) - фінальний технічний звіт.
+- [docs/release-plan.md](docs/release-plan.md) - scope релізу `v1.0.0`.
+- [docs/defense-qa.md](docs/defense-qa.md) - короткі відповіді на питання.
+- [docs/syllabus-coverage.md](docs/syllabus-coverage.md) - покриття тем курсу.
+
 ## UML
 
-Основні UML-артефакти для Lab 34:
+Актуальні UML-артефакти:
 
 - `docs/class-diagram.puml`;
 - `docs/sequence-diagram.puml`.
 
-Додаткові UML-діаграми лежать у `docs/uml`. Для перегляду в GitHub/GitLab PNG-картинки лежать у `docs/uml/images`, а `.puml` файли залишені як вихідний код діаграм.
+Додаткова state diagram для статусів роботи лежить у `docs/uml/job-state-diagram.puml`.
 
-- `class-diagram.puml`;
-- `job-state-diagram.puml`;
-- `main-sequence-diagram.puml`.
-
-## Артефакти Lab 34-35
+## Артефакти ітерацій
 
 - `docs/vision.md` - постановка задачі, користувачі, сценарії та обмеження.
 - `docs/backlog.md` - план розвитку на Lab 34-37.
@@ -113,20 +122,10 @@ Domain layer не залежить від Infrastructure або Console. Infrast
 - `docs/test-strategy.md` - тестова стратегія Lab 36.
 - `docs/test-matrix.md` - відповідність сценаріїв і тестів.
 - `docs/iteration-3.md` - результат Lab 36 і передача в Lab 37.
+- `docs/release-plan.md` - фінальний scope і підготовка `v1.0.0`.
+- `docs/performance-note.md` - коротка оцінка структур даних.
 - `TESTING.md` - запуск тестів та coverage.
 - `.github/workflows/dotnet.yml` - CI для restore, build і test.
-
-### Class Diagram
-
-![Class diagram](docs/uml/images/diagram1.png)
-
-### Job State Diagram
-
-![Job state diagram](docs/uml/images/diagram2.png)
-
-### Main Sequence Diagram
-
-![Main sequence diagram](docs/uml/images/diagram3.png)
 
 ## Тести
 
@@ -150,4 +149,4 @@ dotnet test CarWorkshop.sln
 - скасування записів і робіт;
 - LINQ-запити через facade.
 
-Після Lab 36 проходить `56` тестів, з них `9` окремих integration tests. Локальний coverage: `90.46%` lines і `60.67%` branches.
+Після фінального refactoring Lab 37 проходить `56` тестів, з них `9` окремих integration tests. Локальний coverage: `90.44%` lines і `60.67%` branches.
