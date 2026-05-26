@@ -17,12 +17,14 @@
 - `Job` містить життєвий цикл і перевіряє допустимі статуси через `Dictionary<JobStatus, HashSet<JobStatus>>`.
 - `IPricingStrategy` дозволяє додати інший розрахунок ціни окремим класом.
 - `WorkshopFacade` дає Console простий API без дублювання бізнес-логіки.
+- `CompletedJobsReport` формується в Application через `Func<Job, bool>` та LINQ, тому критерій звіту не зашитий у Console.
 - `JsonPersistence` серіалізує DTO, потім відновлює domain objects через mapper.
 
 ## Як розширювати
 
 - Нова ціна: створити реалізацію `IPricingStrategy`.
 - Новий запит: додати метод application-рівня або extension method, а не логіку в Console.
+- Новий варіант аналітичного звіту: передати іншу умову у `BuildCompletedJobsReport(...)`.
 - Нове сховище: реалізувати Infrastructure-рішення поверх існуючих repository contracts.
 - Нова реакція на статус роботи: реалізувати `IJobStatusObserver`.
 

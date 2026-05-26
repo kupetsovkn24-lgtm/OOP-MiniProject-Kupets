@@ -9,6 +9,7 @@
 | Заборонені переходи та завершена робота | Unit | `JobStatusTests`, `UseCaseTests` |
 | Strategy/Factory/Observer | Unit | `PricingStrategyTests`, `JobFactoryTests`, `JobStatusHistoryObserverTests` |
 | Запити та статистика | Unit | `JobQueryExtensionsTests`, `WorkshopFacadeTests` |
+| Delegate-фільтр і звіт дорогих завершених ремонтів (IW29) | Unit | `JobQueryExtensionsTests`, `WorkshopFacadeTests` |
 | Повний ремонт із save/load | Integration | `FullRepairCycle_SaveAndReload_PreservesCompletedJob` |
 | Операції після відновлення | Integration | `RestoredState_AllowsCreatingAndCancellingNewAppointment`, `RestoredState_ProvidesRevenueQueryForCompletedJobs` |
 | Перший запуск без файлів | Integration | `MissingFiles_AllowSavingAndReloadingNewState` |

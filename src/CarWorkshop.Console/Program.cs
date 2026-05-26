@@ -223,6 +223,14 @@ void PrintQueriesAndStatistics()
     Console.WriteLine("Кількість робіт по механіках:");
     foreach (var (mechanicName, count) in workshop.GetJobCountByMechanic())
         Console.WriteLine($"  {mechanicName}: {count} роб.");
+
+    const decimal expensiveRepairThreshold = 4000m;
+    var expensiveRepairs = workshop.GetExpensiveCompletedJobsReport(expensiveRepairThreshold);
+    Console.WriteLine($"\nЗвіт дорогих завершених ремонтів (від {expensiveRepairThreshold} UAH):");
+    foreach (var job in expensiveRepairs.Jobs)
+        Console.WriteLine($"  {job.Id} | {job.TotalCost()}");
+    Console.WriteLine($"  Кількість: {expensiveRepairs.JobCount}");
+    Console.WriteLine($"  Загальна сума: {expensiveRepairs.TotalRevenue} UAH");
 }
 
 async Task SaveStateAsync()

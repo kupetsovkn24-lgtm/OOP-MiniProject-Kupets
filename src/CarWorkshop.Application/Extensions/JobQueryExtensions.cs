@@ -1,3 +1,4 @@
+using CarWorkshop.Application.Reports;
 using CarWorkshop.Domain.Entities;
 using CarWorkshop.Domain.Enums;
 
@@ -16,6 +17,38 @@ public static class JobQueryExtensions
                      && j.CompletedAt <= to)
             .Select(j => j.TotalCost().Amount)
             .Aggregate(0m, (total, amount) => total + amount);
+    }
+
+    /// <summary>
+    /// Selects completed jobs that satisfy an additional report condition.
+    /// </summary>
+    public static IEnumerable<Job> FilterCompletedJobs(
+        this IEnumerable<Job> jobs,
+        Func<Job, bool> condition)
+    {
+        ArgumentNullException.ThrowIfNull(jobs);
+        ArgumentNullException.ThrowIfNull(condition);
+
+        return jobs
+            .Where(job => job.Status == JobStatus.Completed)
+            .Where(condition);
+    }
+
+    /// <summary>
+    /// Builds a summary for completed jobs selected by a flexible condition.
+    /// </summary>
+    public static CompletedJobsReport BuildCompletedJobsReport(
+        this IEnumerable<Job> jobs,
+        Func<Job, bool> condition)
+    {
+        var matchingJobs = jobs
+            .FilterCompletedJobs(condition)
+            .OrderByDescending(job => job.TotalCost().Amount)
+            .ToList();
+
+        return new CompletedJobsReport(
+            matchingJobs,
+            matchingJobs.Sum(job => job.TotalCost().Amount));
     }
 
     public static IEnumerable<(Mechanic Mechanic, Job Job)> JoinWithMechanics(
